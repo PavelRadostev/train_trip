@@ -1,0 +1,10 @@
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 11
+
+db:
+  dsn: postgresql://radostev:123qwe@localhost:5432/radostev  # home db
+  max_conns: 10
+  connect_timeout: 5s
+  connect_attempts: 5
