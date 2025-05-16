@@ -6,21 +6,31 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/as-master/train_trip/internal/config"
 	"github.com/as-master/train_trip/internal/domain"
 	"github.com/as-master/train_trip/internal/domain/model"
+	"github.com/as-master/train_trip/pkg/pgrepo"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type TrainLoadRepo struct {
-	client Client
+type Repo struct {
+	conn   pgrepo.Connector
 	logger *log.Logger
 }
 
-func NewLoadRepository(conn Client) *TrainLoadRepo {
-	return &TrainLoadRepo{client: conn}
+func (r *Repo) GetConnection() pgrepo.Connector {
+	return r.conn
 }
 
-func wrapPGError(err error, logger *log.Logger) error {
+func NewPGRepo(cfg *config.Config, ctx context.Context) (*Repo, error) {
+	conn, err := NewPool(cfg, ctx)
+	if err != nil {
+		panic(fmt.Errorf("failed to create pgx pool: %w", err))
+	}
+	return &Repo{conn: conn}, nil
+}
+
+func WrapPGError(err error, logger *log.Logger) error {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		wrapped := fmt.Errorf("SQL Error: %s, Detail: %s, Where: %s, Code: %s, SQLState: %s",
@@ -31,8 +41,8 @@ func wrapPGError(err error, logger *log.Logger) error {
 	return err
 }
 
-// GetByTimeInterval возвращает писок погрузок по интервалу времени и списку идентификаторов поездов
-func (r *TrainLoadRepo) GetByTimeInterval(ctx context.Context, trainIDs []int, timeInterval domain.Interval) ([]model.TrainLoad, error) {
+// LoadByTimeInterval возвращает писок погрузок по интервалу времени и списку идентификаторов поездов
+func (r *Repo) LoadByTimeInterval(ctx context.Context, trainIDs []int, timeInterval domain.Interval) ([]model.TrainLoad, error) {
 	query := `SELECT 
 		id, is_deleted, load_arrive_time, load_begin_time, load_end_time,
 		load_depart_time, train_id, geometry_id, unload_id, shovel_id,
@@ -45,9 +55,9 @@ func (r *TrainLoadRepo) GetByTimeInterval(ctx context.Context, trainIDs []int, t
 	  AND load_begin_time >= $2 
 	  AND load_end_time <= $3`
 
-	rows, err := r.client.Query(ctx, query, trainIDs, timeInterval.TimeFrom, timeInterval.TimeTo)
+	rows, err := r.conn.Query(ctx, query, trainIDs, timeInterval.TimeFrom, timeInterval.TimeTo)
 	if err != nil {
-		return nil, wrapPGError(err, r.logger)
+		return nil, WrapPGError(err, r.logger)
 	}
 	defer rows.Close()
 
@@ -78,21 +88,21 @@ func (r *TrainLoadRepo) GetByTimeInterval(ctx context.Context, trainIDs []int, t
 			&load.CarriageNum,
 			&load.Source,
 		); err != nil {
-			return nil, wrapPGError(err, r.logger)
+			return nil, WrapPGError(err, r.logger)
 		}
 		result = append(result, load)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, wrapPGError(err, r.logger)
+		return nil, WrapPGError(err, r.logger)
 	}
 
 	return result, nil
 
 }
 
-// GetByID возвращает погрузку по id
-func (r *TrainLoadRepo) GetByID(ctx context.Context, id int) (*model.TrainLoad, error) {
+// LoadByID возвращает погрузку по id
+func (r *Repo) LoadByID(ctx context.Context, id int) (*model.TrainLoad, error) {
 	query := `SELECT 
 		id, is_deleted, load_arrive_time, load_begin_time, load_end_time,
 		load_depart_time, train_id, geometry_id, unload_id, shovel_id,
@@ -102,14 +112,9 @@ func (r *TrainLoadRepo) GetByID(ctx context.Context, id int) (*model.TrainLoad, 
 		cycle_ids, is_cured, carriage_num, source
 		FROM train_load_unload_store.loads WHERE id = $1`
 
-	row, err := r.client.QueryRow(ctx, query, id)
-	if err != nil {
-		r.logger.Printf("QueryRow error: %v", err)
-		return nil, err
-	}
-
+	row := r.conn.QueryRow(ctx, query, id)
 	var load model.TrainLoad
-	err = row.Scan(
+	if err := row.Scan(
 		&load.ID,
 		&load.IsDeleted,
 		&load.LoadArriveTime,
@@ -132,20 +137,15 @@ func (r *TrainLoadRepo) GetByID(ctx context.Context, id int) (*model.TrainLoad, 
 		&load.IsCured,
 		&load.CarriageNum,
 		&load.Source,
-	)
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
-		pgErr = err.(*pgconn.PgError)
-		newErr := fmt.Errorf("SQL Error: %s, Detail: %s, Where: %s, Code: %s, SQLState: %s", pgErr.Message, pgErr.Detail, pgErr.Where, pgErr.Code, pgErr.SQLState())
-		r.logger.Println(newErr)
-		return nil, newErr
+	); err != nil {
+		return nil, WrapPGError(err, r.logger)
 	}
-
 	return &load, nil
+
 }
 
 // Update обновляет существующую запись о погрузке
-func (r *TrainLoadRepo) Update(ctx context.Context, load *model.TrainLoad) error {
+func (r *Repo) Update(ctx context.Context, load *model.TrainLoad) error {
 	query := `
 		UPDATE train_load_unload_store.loads SET
 			is_deleted = $1,
@@ -172,7 +172,7 @@ func (r *TrainLoadRepo) Update(ctx context.Context, load *model.TrainLoad) error
 		WHERE id = $22
 	`
 
-	tag, err := r.client.Exec(ctx, query,
+	tag, err := r.conn.Exec(ctx, query,
 		load.IsDeleted,
 		load.LoadArriveTime,
 		load.LoadBeginTime,
@@ -208,10 +208,10 @@ func (r *TrainLoadRepo) Update(ctx context.Context, load *model.TrainLoad) error
 }
 
 // Delete удаляет запись логически (is_deleted = true)
-func (r *TrainLoadRepo) Delete(ctx context.Context, id int) error {
+func (r *Repo) Delete(ctx context.Context, id int) error {
 	query := `UPDATE train_load_unload_store.loads SET is_deleted = true WHERE id = $1`
 
-	tag, err := r.client.Exec(ctx, query, id)
+	tag, err := r.conn.Exec(ctx, query, id)
 	if err != nil {
 		return err
 	}
@@ -223,7 +223,7 @@ func (r *TrainLoadRepo) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (r *TrainLoadRepo) GetByTimeInterva(ctx context.Context, id int) (*model.TrainLoad, error) {
+func (r *Repo) GetByTimeInterva(ctx context.Context, id int) (*model.TrainLoad, error) {
 	// Placeholder implementation
 	return nil, fmt.Errorf("not implemented")
 }

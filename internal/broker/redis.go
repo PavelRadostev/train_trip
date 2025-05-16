@@ -2,35 +2,37 @@ package broker
 
 import (
 	"context"
+	"fmt"
 	"log"
-	"sync"
+
+	// "sync"
 	"time"
 
-	domain "github.com/as-master/train_trip/internal/domain/cqrs"
-	"github.com/as-master/train_trip/internal/serializer"
+	"github.com/as-master/train_trip/internal/listener"
+	"github.com/as-master/train_trip/pkg/cqrs"
 	"github.com/redis/go-redis/v9"
 )
 
 type Broker struct {
-	redis     *redis.Client
-	listeners *domain.Registrar
-	mu        sync.Mutex
-	buffer    []interface{} // временное хранилище
+	redis       *redis.Client
+	cqrsHandler *cqrs.CQRSHadler
+	// mu          sync.Mutex
+	buffer []interface{} // временное хранилище
 }
 
-func New(redis *redis.Client, listeners *domain.Registrar) *Broker {
+func New(redis *redis.Client, cqrsHandler *cqrs.CQRSHadler) *Broker {
 	return &Broker{
-		redis:     redis,
-		listeners: listeners,
-		buffer:    make([]interface{}, 0),
+		redis:       redis,
+		cqrsHandler: cqrsHandler,
+		buffer:      make([]interface{}, 0),
 	}
 }
 
 func (b *Broker) Run(ctx context.Context) {
 	const fn = "internal/broker/broker.Run"
-	streams := make([]string, 0, len(b.listeners.GetStreamKeis()))
-	ids := make([]string, 0, len(b.listeners.GetStreamKeis()))
-	for _, stream := range b.listeners.GetStreamKeis() {
+	streams := make([]string, 0, len(b.cqrsHandler.GetStreamKeis()))
+	ids := make([]string, 0, len(b.cqrsHandler.GetStreamKeis()))
+	for _, stream := range b.cqrsHandler.GetStreamKeis() {
 		streams = append(streams, stream)
 		ids = append(ids, "0") // "0" Прочитать ВСЁ (в т.ч. старое); "$" только новые сообщения, которые появятся после запуска XREAD (блокирующий режим)
 	}
@@ -47,19 +49,20 @@ func (b *Broker) Run(ctx context.Context) {
 
 		for _, stream := range xres {
 			for _, msg := range stream.Messages {
-				entity, err := b.listeners.Get(stream.Stream) // создаём новый объект
+				entity, err := b.cqrsHandler.Get(stream.Stream) // создаём новый объект
 				if err != nil {
 					log.Printf("%s: Unable to clone template for stream %s", fn, stream.Stream)
 					continue
 				}
 
-				transportReq, err := serializer.RadisMsgToTransportReq(msg, entity)
+				req, err := listener.MsgToReq(msg, entity)
 				if err != nil {
 					log.Printf("%s: Decode error for stream %s: %v", fn, stream.Stream, err)
 					continue
 				}
+				resp := req.Handle(b.cqrsHandler.GetRepo()) // обработка сообщения
+				fmt.Print(resp)
 
-				b.processMessage(transportReq)
 			}
 		}
 		time.Sleep(100 * time.Microsecond)
@@ -95,9 +98,9 @@ type Serde interface {
 // }
 
 // processMessage — заглушка: складывает обработанные данные в буфер
-func (b *Broker) processMessage(data *serializer.TransportRequest) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	b.buffer = append(b.buffer, data)
-	log.Printf("Buffered message: %#v", data)
-}
+// func (b *Broker) processMessage(data *serializer.TransportRequest) {
+// 	b.mu.Lock()
+// 	defer b.mu.Unlock()
+// 	b.buffer = append(b.buffer, data)
+// 	log.Printf("Buffered message: %#v", data)
+// }

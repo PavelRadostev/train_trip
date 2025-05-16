@@ -7,21 +7,11 @@ import (
 
 	"github.com/as-master/train_trip/internal/config"
 	"github.com/as-master/train_trip/utils"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Client может быть pgx.Conn или pgxpool.Pool
-type Client interface {
-	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...any) (pgx.Row, error)
-	Begin(ctx context.Context) (pgx.Tx, error)
-}
-
-func NewCli(cfg config.Config, ctx context.Context) (*pgxpool.Pool, error) {
-	const fn = "storage.pg.New"
+func NewPool(cfg *config.Config, ctx context.Context) (*pgxpool.Pool, error) {
+	const fn = "internal.repository.pg.NewConn"
 
 	ctx, cancel := context.WithTimeout(ctx, cfg.DB.ConnectTimeout*time.Second)
 	defer cancel()

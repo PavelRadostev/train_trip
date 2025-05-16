@@ -13,13 +13,14 @@ type Config struct {
 		Addr     string `yaml:"addr"`
 		Password string `yaml:"password"`
 		DB       int    `yaml:"db"`
-	}
+	} `yaml:"redis"`
+
 	DB struct {
 		DSN             string        `yaml:"dsn"`
 		MaxConns        int32         `yaml:"max_conns"`
 		ConnectTimeout  time.Duration `yaml:"connect_timeout"`
 		ConnectAttempts int           `yaml:"connect_attempts"`
-	}
+	} `yaml:"db"`
 }
 
 func Load() *Config {
