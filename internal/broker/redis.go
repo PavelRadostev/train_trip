@@ -2,13 +2,10 @@ package broker
 
 import (
 	"context"
-	"fmt"
 	"log"
 
-	// "sync"
 	"time"
 
-	"github.com/as-master/train_trip/internal/listener"
 	"github.com/as-master/train_trip/pkg/cqrs"
 	"github.com/redis/go-redis/v9"
 )
@@ -34,7 +31,7 @@ func (b *Broker) Run(ctx context.Context) {
 	ids := make([]string, 0, len(b.cqrsHandler.GetStreamKeis()))
 	for _, stream := range b.cqrsHandler.GetStreamKeis() {
 		streams = append(streams, stream)
-		ids = append(ids, "0") // "0" Прочитать ВСЁ (в т.ч. старое); "$" только новые сообщения, которые появятся после запуска XREAD (блокирующий режим)
+		ids = append(ids, "$") // "0" Прочитать ВСЁ (в т.ч. старое); "$" только новые сообщения, которые появятся после запуска XREAD (блокирующий режим)
 	}
 
 	for {
@@ -49,23 +46,36 @@ func (b *Broker) Run(ctx context.Context) {
 
 		for _, stream := range xres {
 			for _, msg := range stream.Messages {
-				entity, err := b.cqrsHandler.Get(stream.Stream) // создаём новый объект
+				// Клонируем сущность для обработки
+				entity, err := b.cqrsHandler.Get(stream.Stream)
 				if err != nil {
 					log.Printf("%s: Unable to clone template for stream %s", fn, stream.Stream)
 					continue
 				}
 
-				req, err := listener.MsgToReq(msg, entity)
-				if err != nil {
-					log.Printf("%s: Decode error for stream %s: %v", fn, stream.Stream, err)
-					continue
-				}
-				resp := req.Handle(b.cqrsHandler.GetRepo()) // обработка сообщения
-				fmt.Print(resp)
+				// Асинхронная обработка
+				go func(msg redis.XMessage, streamName string, entity cqrs.CQRSEntity) {
+					reqID, respBytes, ok := b.cqrsHandler.Handle(msg, entity)
+					if !ok {
+						log.Printf("%s: Failed to handle message from stream %s, msgID=%s", fn, streamName, msg.ID)
+						return
+					}
 
+					// Ответ в Redis
+					pipe := b.redis.Pipeline()
+					pipe.RPush(ctx, reqID, respBytes)
+					pipe.Expire(ctx, reqID, 30*time.Second)
+
+					// Удаляем сообщение из потока
+					pipe.XDel(ctx, streamName, msg.ID)
+
+					if _, err := pipe.Exec(ctx); err != nil {
+						log.Printf("%s: Failed to write response or delete message: %v", fn, err)
+					}
+				}(msg, stream.Stream, entity)
 			}
 		}
-		time.Sleep(100 * time.Microsecond)
+		// time.Sleep(100 * time.Microsecond)
 	}
 }
 

@@ -11,8 +11,6 @@ import (
 
 // TrainLoadQuery — запрос на загрузку поезда
 type TrainLoadQuery struct {
-	Request Request
-
 	TrainID      []int           `cbor:"train_id,omitempty"`
 	TimeInterval domain.Interval `cbor:"time_interval,omitempty"`
 	ShovelID     int             `cbor:"shovel_id,omitempty"`
@@ -47,9 +45,6 @@ func (q TrainLoadQuery) Handle(repo cqrs.Repository) (any, error) {
 		return nil, fmt.Errorf("train_load_unload_detector_domain.query.train_load_unload.TrainLoadQuery: failed to execute query: %w", err)
 	}
 	defer rows.Close()
-
-	s, _ := fmt.Printf("Executing query: %s\nParams: train_ids=%v, from=%v, to=%v", query, q.TrainID, q.TimeInterval.TimeFrom, q.TimeInterval.TimeTo)
-	fmt.Println(s)
 
 	result := make([]model.TrainLoad, 0, 40) // 40 половина среднего количества погруок за смену
 	for rows.Next() {
@@ -91,8 +86,6 @@ func (q TrainLoadQuery) Handle(repo cqrs.Repository) (any, error) {
 
 // TrainUnloadQuery — запрос на выгрузку поезда
 type TrainUnloadQuery struct {
-	Request Request
-
 	TrainID      []int           `cbor:"train_id,omitempty"`
 	TimeInterval domain.Interval `cbor:"time_interval,omitempty"`
 	UnloadID     int             `cbor:"unload_id,omitempty"`
