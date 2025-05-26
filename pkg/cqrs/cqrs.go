@@ -16,6 +16,7 @@ type CQRSEntity interface {
 
 // Repository - интерфейс для работы с хранилищем данных
 type Repository interface {
+	GetBDSchema() string
 	GetConnection() pgrepo.Connector
 }
 

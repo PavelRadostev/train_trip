@@ -26,7 +26,15 @@ ___
 
 Реализуемые команды:
 
+## Installation
+### Apply all pending migrations
+`go run cmd/migrate/main.go up`
 
+Rollback last migration
+`go run cmd/migrate/main.go down`
+
+Check current version
+`go run cmd/migrate/main.go version`
 
 ## Installation
 
@@ -45,24 +53,14 @@ ___
 
 ## Documentation
 
-Сервис слушает события от train_load_unload_detector и записывает в базу Погрузки/Разгрузки
 
-Событие Погрузка бывает 2-х видов:
-
-1. Начало погрузки - сразу идет в базу.
-2. Завершение погрузки - обновляет поля у ранее созданной погрузки.
-
-Событие Разгрузка бывает 2-х видов:
-
-1. Начало разгрузки по нажатию кнопки машинистом.
-2. Разгрузка по выходу из зоны.
-
-**Начало разгрузки по нажатию кнопки машинистом.**
-
-**Разгрузка по выходу из зоны**
 
 ## Git
-
+git branch -M master
+git add -A
+git status
+git commit -m "Init MS train_trip"
+git push origin master
 
 ## Tests
 

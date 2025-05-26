@@ -10,8 +10,10 @@
             "request": "launch",
             "mode": "debug",
             "program": "cmd/main.go",
+            // "program": "cmd/migrate/main.go", // Накатить миграции
             "envFile": "${workspaceFolder}/local.env", // Указываем путь к файлу .env
-            "console": "integratedTerminal"  // Ввод будет в терминале
+            "console": "integratedTerminal",  // Ввод будет в терминале
+            "args": ["version"],
         },
     ]
 }

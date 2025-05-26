@@ -6,14 +6,15 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/as-master/train_trip/internal/config"
 	"github.com/as-master/train_trip/internal/domain"
 	"github.com/as-master/train_trip/internal/domain/model"
+	"github.com/as-master/train_trip/pkg/config"
 	"github.com/as-master/train_trip/pkg/pgrepo"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type Repo struct {
+	schema string
 	conn   pgrepo.Connector
 	logger *log.Logger
 }
@@ -22,12 +23,16 @@ func (r *Repo) GetConnection() pgrepo.Connector {
 	return r.conn
 }
 
+func (r *Repo) GetBDSchema() string {
+	return r.schema
+}
+
 func NewPGRepo(cfg *config.Config, ctx context.Context) (*Repo, error) {
 	conn, err := NewPool(cfg, ctx)
 	if err != nil {
 		panic(fmt.Errorf("failed to create pgx pool: %w", err))
 	}
-	return &Repo{conn: conn}, nil
+	return &Repo{conn: conn, schema: cfg.DB.Schema}, nil
 }
 
 func WrapPGError(err error, logger *log.Logger) error {

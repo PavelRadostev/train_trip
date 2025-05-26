@@ -5,6 +5,11 @@ redis:
 
 db:
   dsn: postgresql://radostev:123qwe@localhost:5432/radostev
+  schema: train_load_unload_store
   max_conns: 10
   connect_timeout: 5s
   connect_attempts: 5
+
+migration:
+  enabled: true 
+  migration_dir: /home/radostev/vist/go_services/train_trip/internal/migrations
