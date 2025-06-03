@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/as-master/train_trip/internal/domain"
-	"github.com/as-master/train_trip/internal/domain/model"
-	"github.com/as-master/train_trip/pkg/cqrs"
+	"github.com/PavelRadostev/train_trip/internal/domain"
+	"github.com/PavelRadostev/train_trip/internal/domain/model"
+	"github.com/PavelRadostev/train_trip/pkg/cqrs"
 )
 
 // TrainLoadQuery — запрос на загрузку поезда

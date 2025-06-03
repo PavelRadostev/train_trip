@@ -8,7 +8,7 @@ import (
 
 	"log"
 
-	"github.com/as-master/train_trip/pkg/config"
+	"github.com/PavelRadostev/train_trip/pkg/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	migratepg "github.com/golang-migrate/migrate/v4/database/postgres"

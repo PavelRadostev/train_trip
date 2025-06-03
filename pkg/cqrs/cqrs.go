@@ -3,7 +3,7 @@ package cqrs
 import (
 	"fmt"
 
-	"github.com/as-master/train_trip/pkg/pgrepo"
+	"github.com/PavelRadostev/train_trip/pkg/pgrepo"
 	"github.com/fxamacker/cbor/v2"
 	"github.com/redis/go-redis/v9"
 )

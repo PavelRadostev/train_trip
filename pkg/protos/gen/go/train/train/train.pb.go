@@ -298,7 +298,7 @@ const file_train_train_proto_rawDesc = "" +
 	"\x14reduced_carriage_num\x18\t \x01(\x01R\x12reducedCarriageNum2\xc0\x01\n" +
 	"\fTrainService\x12S\n" +
 	"\x10GetTrainPassport\x12\x1e.train.GetTrainPassportRequest\x1a\x1f.train.GetTrainPassportResponse\x12[\n" +
-	"\x14GetTrainPassportByID\x12\".train.GetTrainPassportByIDRequest\x1a\x1f.train.GetTrainPassportResponseB-Z+github.com/as-master/train_trip/proto/trainb\x06proto3"
+	"\x14GetTrainPassportByID\x12\".train.GetTrainPassportByIDRequest\x1a\x1f.train.GetTrainPassportResponseB-Z+github.com/PavelRadostev/train_trip/proto/trainb\x06proto3"
 
 var (
 	file_train_train_proto_rawDescOnce sync.Once

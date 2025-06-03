@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/as-master/train_trip/internal/domain"
-	"github.com/as-master/train_trip/internal/domain/model"
-	"github.com/as-master/train_trip/pkg/config"
-	"github.com/as-master/train_trip/pkg/pgrepo"
+	"github.com/PavelRadostev/train_trip/internal/domain"
+	"github.com/PavelRadostev/train_trip/internal/domain/model"
+	"github.com/PavelRadostev/train_trip/pkg/config"
+	"github.com/PavelRadostev/train_trip/pkg/pgrepo"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 

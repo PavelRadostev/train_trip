@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/as-master/train_trip/pkg/config"
-	"github.com/as-master/train_trip/utils"
+	"github.com/PavelRadostev/train_trip/pkg/config"
+	"github.com/PavelRadostev/train_trip/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

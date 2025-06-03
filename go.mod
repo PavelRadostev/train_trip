@@ -1,4 +1,4 @@
-module github.com/as-master/train_trip
+module github.com/PavelRadostev/train_trip
 
 go 1.24.2
 

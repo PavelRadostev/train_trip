@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 
-	"github.com/as-master/train_trip/internal/broker"
-	"github.com/as-master/train_trip/internal/listener"
-	"github.com/as-master/train_trip/internal/redis"
-	"github.com/as-master/train_trip/internal/repository"
-	"github.com/as-master/train_trip/pkg/config"
-	"github.com/as-master/train_trip/pkg/cqrs"
+	"github.com/PavelRadostev/train_trip/internal/broker"
+	"github.com/PavelRadostev/train_trip/internal/listener"
+	"github.com/PavelRadostev/train_trip/internal/redis"
+	"github.com/PavelRadostev/train_trip/internal/repository"
+	"github.com/PavelRadostev/train_trip/pkg/config"
+	"github.com/PavelRadostev/train_trip/pkg/cqrs"
 )
 
 func main() {

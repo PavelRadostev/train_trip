@@ -6,7 +6,7 @@ import (
 
 	"time"
 
-	"github.com/as-master/train_trip/pkg/cqrs"
+	"github.com/PavelRadostev/train_trip/pkg/cqrs"
 	"github.com/redis/go-redis/v9"
 )
 
