@@ -62,6 +62,15 @@ git status
 git commit -m "Init MS train_trip"
 git push origin master
 
+## gRPC
+protoc \
+   --go_out=pkg/protos/gen/go/train \
+   --go_opt=paths=source_relative \
+   --go-grpc_out=pkg/protos/gen/go/train \
+   --go-grpc_opt=paths=source_relative \
+   --proto_path=pkg/protos/gen/proto \
+   train/train.proto
+
 ## Tests
 
 

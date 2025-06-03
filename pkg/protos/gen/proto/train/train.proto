@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package train;
+option go_package = "github.com/as-master/train_trip/proto/train";
+
+import "google/protobuf/timestamp.proto";
+
+service TrainService {
+    rpc GetTrainPassport(GetTrainPassportRequest) returns (GetTrainPassportResponse);
+    rpc GetTrainPassportByID(GetTrainPassportByIDRequest) returns (GetTrainPassportResponse);
+}
+
+message GetTrainPassportRequest {
+    int64 train_id = 1;
+    google.protobuf.Timestamp at_time = 2;
+}
+
+message GetTrainPassportByIDRequest {
+    int64 passport_id = 1;
+}
+
+message GetTrainPassportResponse {
+    TrainPassport passport = 1;
+}
+
+message TrainPassport {
+    int64 passport_id = 1;
+    int64 train_id = 2;
+    google.protobuf.Timestamp begin = 3;
+    google.protobuf.Timestamp end = 4; // может быть null
+    int64 cargo_id = 5;
+    double std_weight = 6;
+    double std_volume = 7;
+    double carriage_num = 8;
+    double reduced_carriage_num = 9;
+}
