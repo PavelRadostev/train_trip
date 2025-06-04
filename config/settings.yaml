@@ -10,6 +10,12 @@ db:
   connect_timeout: 5s
   connect_attempts: 5
 
+grpc:
+  port: 44044
+  timeout: 5s
+
+token_ttl: 1h
+
 migration:
   enabled: true 
   migration_dir: /home/radostev/vist/go_services/train_trip/internal/migrations

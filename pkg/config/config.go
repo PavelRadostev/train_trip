@@ -15,6 +15,8 @@ type Config struct {
 		DB       int    `yaml:"db"`
 	} `yaml:"redis"`
 
+	TokenTTL time.Duration `yaml:"token_ttl"`
+
 	DB struct {
 		DSN             string        `yaml:"dsn"`
 		Schema          string        `yaml:"schema"`
@@ -22,6 +24,11 @@ type Config struct {
 		ConnectTimeout  time.Duration `yaml:"connect_timeout"`
 		ConnectAttempts int           `yaml:"connect_attempts"`
 	} `yaml:"db"`
+
+	GRPC struct {
+		Port    int64         `yaml:"port"`
+		Timeout time.Duration `yaml:"timeout"`
+	} `yaml:"grpc"`
 
 	Migration struct {
 		Dir string `yaml:"migration_dir"`
