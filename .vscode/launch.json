@@ -9,8 +9,8 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "sand_box.go",
-            // "program": "cmd/main.go",
+            // "program": "sand_box.go",
+            "program": "cmd/main.go",
             // "program": "cmd/migrate/main.go", // Накатить миграции
             "envFile": "${workspaceFolder}/local.env", // Указываем путь к файлу .env
             "console": "integratedTerminal",  // Ввод будет в терминале
