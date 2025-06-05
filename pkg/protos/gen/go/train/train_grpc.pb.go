@@ -4,7 +4,7 @@
 // - protoc             v3.6.1
 // source: train/train.proto
 
-package v1
+package train
 
 import (
 	context "context"

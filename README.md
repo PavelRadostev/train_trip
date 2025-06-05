@@ -65,18 +65,21 @@ git push origin master
 git tag v0.0.1
 git push origin v0.0.1
 
+git tag -d v0.0.3
+git push origin --delete v0.0.3
+
 
 ## gRPC
 добавляет директорию, куда go install ставит бинарники (protoc-gen-go, protoc-gen-go-grpc и др.), в PATH. Без этого protoc не сможет найти эти плагины, даже если они установлены.
 export PATH="$PATH:$(go env GOPATH)/bin"
 
 protoc \
-   --go_out=pkg/protos/gen/go/train \
-   --go_opt=paths=source_relative \
-   --go-grpc_out=pkg/protos/gen/go/train \
-   --go-grpc_opt=paths=source_relative \
-   --proto_path=pkg/protos/gen/proto \
-   train/train.proto
+  --go_out=pkg/protos/gen/go \
+  --go_opt=paths=source_relative \
+  --go-grpc_out=pkg/protos/gen/go \
+  --go-grpc_opt=paths=source_relative \
+  --proto_path=pkg/protos/proto \
+  train/train.proto
 
 ## Tests
 
